@@ -1,27 +1,39 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
-  MessageCircle, 
-  FlaskConical, 
-  Users, 
-  DollarSign, 
-  ShoppingCart, 
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  MessageCircle,
+  FlaskConical,
+  Users,
+  DollarSign,
+  ShoppingCart,
   FolderOpen,
   ExternalLink,
   Edit3,
   Plus,
   ChevronDown,
   ChevronUp,
-  Settings
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ResourceModal } from '@/components/ResourceModal';
-import { SectionModal } from '@/components/SectionModal';
+  Settings,
+  LogOut,
+  UserCog, // Added
+  ShieldCheck, // Added
+  Info, // Added
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ResourceModal } from "@/components/ResourceModal";
+import { SectionModal } from "@/components/SectionModal";
+import LoginPage from "@/components/LoginPage";
+import { AdminFeaturesModal } from "@/components/AdminFeaturesModal"; // Added
 
 interface DocumentLink {
   id: string;
@@ -42,251 +54,306 @@ interface Section {
 
 const mockData: Section[] = [
   {
-    id: 'communication',
-    title: 'Communication Protocols',
+    id: "communication",
+    title: "Communication Protocols",
     icon: <MessageCircle className="w-5 h-5" />,
-    description: 'Best practices, escalation workflows, and team communication guidelines',
-    color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+    description:
+      "Best practices, escalation workflows, and team communication guidelines",
+    color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
     links: [
       {
-        id: '1',
-        title: 'Daily Standup Template',
-        url: 'https://docs.google.com/spreadsheets/d/example1',
-        description: 'Meeting agenda and progress tracking',
-        tags: ['daily', 'meetings']
+        id: "1",
+        title: "Daily Standup Template",
+        url: "https://docs.google.com/spreadsheets/d/example1",
+        description: "Meeting agenda and progress tracking",
+        tags: ["daily", "meetings"],
       },
       {
-        id: '2',
-        title: 'Escalation Matrix',
-        url: 'https://docs.google.com/spreadsheets/d/example2',
-        description: 'Issue escalation paths and contacts',
-        tags: ['urgent', 'contacts']
+        id: "2",
+        title: "Escalation Matrix",
+        url: "https://docs.google.com/spreadsheets/d/example2",
+        description: "Issue escalation paths and contacts",
+        tags: ["urgent", "contacts"],
       },
       {
-        id: '3',
-        title: 'Communication Guidelines',
-        url: 'https://docs.google.com/spreadsheets/d/example3',
-        description: 'WhatsApp, email, and meeting protocols',
-        tags: ['guidelines', 'protocols']
-      }
-    ]
+        id: "3",
+        title: "Communication Guidelines",
+        url: "https://docs.google.com/spreadsheets/d/example3",
+        description: "WhatsApp, email, and meeting protocols",
+        tags: ["guidelines", "protocols"],
+      },
+    ],
   },
   {
-    id: 'rd',
-    title: 'R&D Workflows',
+    id: "rd",
+    title: "R&D Workflows",
     icon: <FlaskConical className="w-5 h-5" />,
-    description: 'Research logs, test protocols, and development processes',
-    color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
+    description: "Research logs, test protocols, and development processes",
+    color: "bg-purple-50 border-purple-200 hover:bg-purple-100",
     links: [
       {
-        id: '4',
-        title: 'Research Log Template',
-        url: 'https://docs.google.com/spreadsheets/d/example4',
-        description: 'Daily research activities and findings',
-        tags: ['research', 'logs']
+        id: "4",
+        title: "Research Log Template",
+        url: "https://docs.google.com/spreadsheets/d/example4",
+        description: "Daily research activities and findings",
+        tags: ["research", "logs"],
       },
       {
-        id: '5',
-        title: 'Testing Protocols',
-        url: 'https://docs.google.com/spreadsheets/d/example5',
-        description: 'Quality assurance and testing procedures',
-        tags: ['testing', 'qa']
+        id: "5",
+        title: "Testing Protocols",
+        url: "https://docs.google.com/spreadsheets/d/example5",
+        description: "Quality assurance and testing procedures",
+        tags: ["testing", "qa"],
       },
       {
-        id: '6',
-        title: 'Development Roadmap',
-        url: 'https://docs.google.com/spreadsheets/d/example6',
-        description: 'Feature development timeline and priorities',
-        tags: ['roadmap', 'development']
-      }
-    ]
+        id: "6",
+        title: "Development Roadmap",
+        url: "https://docs.google.com/spreadsheets/d/example6",
+        description: "Feature development timeline and priorities",
+        tags: ["roadmap", "development"],
+      },
+    ],
   },
   {
-    id: 'roles',
-    title: 'Role Assignments',
+    id: "roles",
+    title: "Role Assignments",
     icon: <Users className="w-5 h-5" />,
-    description: 'Team structure, responsibilities, and contact information',
-    color: 'bg-green-50 border-green-200 hover:bg-green-100',
+    description: "Team structure, responsibilities, and contact information",
+    color: "bg-green-50 border-green-200 hover:bg-green-100",
     links: [
       {
-        id: '7',
-        title: 'Team Directory',
-        url: 'https://docs.google.com/spreadsheets/d/example7',
-        description: 'Contact details and role descriptions',
-        tags: ['contacts', 'roles']
+        id: "7",
+        title: "Team Directory",
+        url: "https://docs.google.com/spreadsheets/d/example7",
+        description: "Contact details and role descriptions",
+        tags: ["contacts", "roles"],
       },
       {
-        id: '8',
-        title: 'Responsibility Matrix',
-        url: 'https://docs.google.com/spreadsheets/d/example8',
-        description: 'RACI matrix for key processes',
-        tags: ['responsibilities', 'processes']
+        id: "8",
+        title: "Responsibility Matrix",
+        url: "https://docs.google.com/spreadsheets/d/example8",
+        description: "RACI matrix for key processes",
+        tags: ["responsibilities", "processes"],
       },
       {
-        id: '9',
-        title: 'Skill Matrix',
-        url: 'https://docs.google.com/spreadsheets/d/example9',
-        description: 'Team skills and expertise mapping',
-        tags: ['skills', 'expertise']
-      }
-    ]
+        id: "9",
+        title: "Skill Matrix",
+        url: "https://docs.google.com/spreadsheets/d/example9",
+        description: "Team skills and expertise mapping",
+        tags: ["skills", "expertise"],
+      },
+    ],
   },
   {
-    id: 'finance',
-    title: 'Financial Logs',
+    id: "finance",
+    title: "Financial Logs",
     icon: <DollarSign className="w-5 h-5" />,
-    description: 'Budget tracking, expenses, and revenue projections',
-    color: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
+    description: "Budget tracking, expenses, and revenue projections",
+    color: "bg-yellow-50 border-yellow-200 hover:bg-yellow-100",
     links: [
       {
-        id: '10',
-        title: 'Monthly Budget Tracker',
-        url: 'https://docs.google.com/spreadsheets/d/example10',
-        description: 'Income, expenses, and budget variance',
-        tags: ['budget', 'monthly']
+        id: "10",
+        title: "Monthly Budget Tracker",
+        url: "https://docs.google.com/spreadsheets/d/example10",
+        description: "Income, expenses, and budget variance",
+        tags: ["budget", "monthly"],
       },
       {
-        id: '11',
-        title: 'Expense Reports',
-        url: 'https://docs.google.com/spreadsheets/d/example11',
-        description: 'Detailed expense tracking and categorization',
-        tags: ['expenses', 'reports']
+        id: "11",
+        title: "Expense Reports",
+        url: "https://docs.google.com/spreadsheets/d/example11",
+        description: "Detailed expense tracking and categorization",
+        tags: ["expenses", "reports"],
       },
       {
-        id: '12',
-        title: 'Revenue Projections',
-        url: 'https://docs.google.com/spreadsheets/d/example12',
-        description: 'Sales forecasts and financial planning',
-        tags: ['revenue', 'projections']
-      }
-    ]
+        id: "12",
+        title: "Revenue Projections",
+        url: "https://docs.google.com/spreadsheets/d/example12",
+        description: "Sales forecasts and financial planning",
+        tags: ["revenue", "projections"],
+      },
+    ],
   },
   {
-    id: 'sourcing',
-    title: 'Product Sourcing',
+    id: "sourcing",
+    title: "Product Sourcing",
     icon: <ShoppingCart className="w-5 h-5" />,
-    description: 'Vendor information, lead times, and cost comparisons',
-    color: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
+    description: "Vendor information, lead times, and cost comparisons",
+    color: "bg-orange-50 border-orange-200 hover:bg-orange-100",
     links: [
       {
-        id: '13',
-        title: 'Vendor Database',
-        url: 'https://docs.google.com/spreadsheets/d/example13',
-        description: 'Supplier contacts and evaluation criteria',
-        tags: ['vendors', 'suppliers']
+        id: "13",
+        title: "Vendor Database",
+        url: "https://docs.google.com/spreadsheets/d/example13",
+        description: "Supplier contacts and evaluation criteria",
+        tags: ["vendors", "suppliers"],
       },
       {
-        id: '14',
-        title: 'Cost Comparison Matrix',
-        url: 'https://docs.google.com/spreadsheets/d/example14',
-        description: 'Price analysis across multiple suppliers',
-        tags: ['costs', 'comparison']
+        id: "14",
+        title: "Cost Comparison Matrix",
+        url: "https://docs.google.com/spreadsheets/d/example14",
+        description: "Price analysis across multiple suppliers",
+        tags: ["costs", "comparison"],
       },
       {
-        id: '15',
-        title: 'Lead Time Tracker',
-        url: 'https://docs.google.com/spreadsheets/d/example15',
-        description: 'Delivery schedules and timeline management',
-        tags: ['delivery', 'timeline']
-      }
-    ]
+        id: "15",
+        title: "Lead Time Tracker",
+        url: "https://docs.google.com/spreadsheets/d/example15",
+        description: "Delivery schedules and timeline management",
+        tags: ["delivery", "timeline"],
+      },
+    ],
   },
   {
-    id: 'misc',
-    title: 'Miscellaneous Resources',
+    id: "misc",
+    title: "Miscellaneous Resources",
     icon: <FolderOpen className="w-5 h-5" />,
-    description: 'Additional documentation and useful resources',
-    color: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+    description: "Additional documentation and useful resources",
+    color: "bg-gray-50 border-gray-200 hover:bg-gray-100",
     links: [
       {
-        id: '16',
-        title: 'Company Policies',
-        url: 'https://docs.google.com/spreadsheets/d/example16',
-        description: 'HR policies and company guidelines',
-        tags: ['policies', 'hr']
+        id: "16",
+        title: "Company Policies",
+        url: "https://docs.google.com/spreadsheets/d/example16",
+        description: "HR policies and company guidelines",
+        tags: ["policies", "hr"],
       },
       {
-        id: '17',
-        title: 'Meeting Notes Archive',
-        url: 'https://docs.google.com/spreadsheets/d/example17',
-        description: 'Historical meeting records and decisions',
-        tags: ['meetings', 'archive']
+        id: "17",
+        title: "Meeting Notes Archive",
+        url: "https://docs.google.com/spreadsheets/d/example17",
+        description: "Historical meeting records and decisions",
+        tags: ["meetings", "archive"],
       },
       {
-        id: '18',
-        title: 'Resource Library',
-        url: 'https://docs.google.com/spreadsheets/d/example18',
-        description: 'Useful tools, templates, and references',
-        tags: ['tools', 'templates']
-      }
-    ]
-  }
+        id: "18",
+        title: "Resource Library",
+        url: "https://docs.google.com/spreadsheets/d/example18",
+        description: "Useful tools, templates, and references",
+        tags: ["tools", "templates"],
+      },
+    ],
+  },
 ];
 
 export default function DocumentationHub() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true); // New loading state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [adminMode, setAdminMode] = useState(false);
   const [sections, setSections] = useState<Section[]>(mockData);
   const [windowWidth, setWindowWidth] = useState(0);
-  
+  const [isAdminFeaturesModalOpen, setIsAdminFeaturesModalOpen] =
+    useState(false); // Added
+
   // Modal states
   const [resourceModal, setResourceModal] = useState({
     isOpen: false,
-    mode: 'add' as 'add' | 'edit',
+    mode: "add" as "add" | "edit",
     resource: undefined as DocumentLink | undefined,
-    sectionId: ''
+    sectionId: "",
   });
-  
+
   const [sectionModal, setSectionModal] = useState({
     isOpen: false,
-    mode: 'add' as 'add' | 'edit',
-    section: undefined as Section | undefined
+    mode: "add" as "add" | "edit",
+    section: undefined as Section | undefined,
   });
+
+  // Effect to check login status from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedLoginStatus = localStorage.getItem("isDocHubLoggedIn");
+      if (storedLoginStatus === "true") {
+        setIsLoggedIn(true);
+        const storedAdminMode = localStorage.getItem("docHubAdminMode");
+        if (storedAdminMode === "true") setAdminMode(true);
+      }
+      setIsLoading(false); // Set loading to false after checking
+    }
+  }, []);
+
+  // Login and Logout Handlers
+  const handleLogin = (username?: string, password?: string) => {
+    if (username === "admin" && password === "admin") {
+      setIsLoggedIn(true);
+      setLoginError(null);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("isDocHubLoggedIn", "true");
+      }
+      // setAdminMode(true); // Optionally enable admin mode on login
+      // if (typeof window !== 'undefined') localStorage.setItem('docHubAdminMode', 'true');
+    } else {
+      setLoginError("Invalid username or password. Please try again.");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("isDocHubLoggedIn"); // Clear on failed attempt
+        // localStorage.removeItem('docHubAdminMode');
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setAdminMode(false); // Reset adminMode on logout
+    setSearchTerm("");
+    setExpandedSections([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("isDocHubLoggedIn");
+      localStorage.removeItem("docHubAdminMode"); // Also clear admin mode
+    }
+  };
 
   // Effect to handle window resize - safely handle window in client-side only
   useEffect(() => {
     // Only run on client side
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Set initial window width
       setWindowWidth(window.innerWidth);
-      
+
       // Add event listener for window resize
       const handleResize = () => {
         setWindowWidth(window.innerWidth);
       };
-      
-      window.addEventListener('resize', handleResize);
-      
+
+      window.addEventListener("resize", handleResize);
+
       // Clean up event listener
       return () => {
-        window.removeEventListener('resize', handleResize);
+        window.removeEventListener("resize", handleResize);
       };
     }
   }, []);
 
-  const filteredData = sections.map(section => ({
-    ...section,
-    links: section.links.filter(link =>
-      link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      link.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      link.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-  })).filter(section => section.links.length > 0 || searchTerm === '');
+  const filteredData = sections
+    .map((section) => ({
+      ...section,
+      links: section.links.filter(
+        (link) =>
+          link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          link.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          link.tags?.some((tag) =>
+            tag.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      ),
+    }))
+    .filter((section) => section.links.length > 0 || searchTerm === "");
 
   const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev =>
+    setExpandedSections((prev) =>
       prev.includes(sectionId)
-        ? prev.filter(id => id !== sectionId)
+        ? prev.filter((id) => id !== sectionId)
         : [...prev, sectionId]
     );
   };
 
-  const isExpanded = (sectionId: string) => expandedSections.includes(sectionId);
+  const isExpanded = (sectionId: string) =>
+    expandedSections.includes(sectionId);
 
   const openLink = (url: string) => {
-    if (typeof window !== 'undefined') {
-      window.open(url, '_blank', 'noopener,noreferrer');
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -294,89 +361,106 @@ export default function DocumentationHub() {
   const handleAddResource = (sectionId: string) => {
     setResourceModal({
       isOpen: true,
-      mode: 'add',
+      mode: "add",
       resource: undefined,
-      sectionId
+      sectionId,
     });
   };
 
   const handleEditResource = (resource: DocumentLink, sectionId: string) => {
     setResourceModal({
       isOpen: true,
-      mode: 'edit',
+      mode: "edit",
       resource,
-      sectionId
+      sectionId,
     });
   };
 
   const handleSaveResource = (resource: DocumentLink) => {
-    setSections(prev => prev.map(section => {
-      if (section.id === resourceModal.sectionId) {
-        if (resourceModal.mode === 'add') {
-          return {
-            ...section,
-            links: [...section.links, resource]
-          };
-        } else {
-          return {
-            ...section,
-            links: section.links.map(link => 
-              link.id === resource.id ? resource : link
-            )
-          };
+    setSections((prev) =>
+      prev.map((section) => {
+        if (section.id === resourceModal.sectionId) {
+          if (resourceModal.mode === "add") {
+            return {
+              ...section,
+              links: [...section.links, resource],
+            };
+          } else {
+            return {
+              ...section,
+              links: section.links.map((link) =>
+                link.id === resource.id ? resource : link
+              ),
+            };
+          }
         }
-      }
-      return section;
-    }));
+        return section;
+      })
+    );
   };
 
   const handleDeleteResource = (resourceId: string) => {
-    setSections(prev => prev.map(section => {
-      if (section.id === resourceModal.sectionId) {
-        return {
-          ...section,
-          links: section.links.filter(link => link.id !== resourceId)
-        };
-      }
-      return section;
-    }));
+    setSections((prev) =>
+      prev.map((section) => {
+        if (section.id === resourceModal.sectionId) {
+          return {
+            ...section,
+            links: section.links.filter((link) => link.id !== resourceId),
+          };
+        }
+        return section;
+      })
+    );
   };
 
   // Section CRUD operations
   const handleAddSection = () => {
     setSectionModal({
       isOpen: true,
-      mode: 'add',
-      section: undefined
+      mode: "add",
+      section: undefined,
     });
   };
 
   const handleEditSection = (section: Section) => {
     setSectionModal({
       isOpen: true,
-      mode: 'edit',
-      section
+      mode: "edit",
+      section,
     });
   };
 
   const handleSaveSection = (section: Section) => {
-    if (sectionModal.mode === 'add') {
-      setSections(prev => [...prev, { ...section, links: [] }]);
+    if (sectionModal.mode === "add") {
+      setSections((prev) => [...prev, { ...section, links: [] }]);
     } else {
-      setSections(prev => prev.map(s => 
-        s.id === section.id ? { ...s, ...section } : s
-      ));
+      setSections((prev) =>
+        prev.map((s) => (s.id === section.id ? { ...s, ...section } : s))
+      );
     }
   };
 
   const handleDeleteSection = (sectionId: string) => {
-    setSections(prev => prev.filter(section => section.id !== sectionId));
+    setSections((prev) => prev.filter((section) => section.id !== sectionId));
   };
 
   const getSectionTitle = (sectionId: string) => {
-    const section = sections.find(s => s.id === sectionId);
-    return section?.title || 'Unknown Section';
+    const section = sections.find((s) => s.id === sectionId);
+    return section?.title || "Unknown Section";
   };
+
+  // Conditional Rendering for Login Page
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} loginError={loginError} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -390,30 +474,63 @@ export default function DocumentationHub() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">DocHub</h1>
-                <p className="text-sm text-gray-600">Central Documentation Hub</p>
+                <p className="text-sm text-gray-600">
+                  Central Documentation Hub
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <div className="relative flex-1 sm:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search documents..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full sm:w-64"
-                />
-              </div>
-              
-              <Button
-                variant={adminMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAdminMode(!adminMode)}
-                className="hidden sm:flex"
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
+              {isLoggedIn && (
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search documents..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-full sm:w-64"
+                  />
+                </div>
+              )}
+
+              {isLoggedIn && (
+                <Button
+                  variant={adminMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    const newAdminMode = !adminMode;
+                    setAdminMode(newAdminMode);
+                    if (typeof window !== "undefined") {
+                      if (newAdminMode)
+                        localStorage.setItem("docHubAdminMode", "true");
+                      else localStorage.removeItem("docHubAdminMode");
+                    }
+                  }}
+                  className={`hidden sm:flex items-center transition-colors duration-200 ${
+                    adminMode
+                      ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                      : ""
+                  }`}
+                >
+                  {adminMode ? (
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                  ) : (
+                    <UserCog className="w-4 h-4 mr-2" />
+                  )}
+                  {adminMode ? "Admin Mode" : "User Mode"}
+                </Button>
+              )}
+              {isLoggedIn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="hidden sm:flex"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -422,49 +539,102 @@ export default function DocumentationHub() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg text-gray-600 mb-2">Quick Access to Team Resources</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg text-gray-600 mb-2">
+                Quick Access to Team Resources
+              </h2>
               <p className="text-gray-500">
-                Centralized access to all your team&apos;s Google Sheets and documentation. 
-                Click any link to open in a new tab.
+                Centralized access to all your team&apos;s Google Sheets and
+                documentation. Click any link to open in a new tab.
               </p>
             </div>
-            
             {adminMode && (
-              <Button onClick={handleAddSection} className="hidden sm:flex">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Section
-              </Button>
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAdminFeaturesModalOpen(true)}
+                  className="flex items-center h-10 bg-cyan-700 text-white border-0 focus:ring-0 focus:outline-none shadow-none hover:bg-cyan-900 hover:text-white"
+                  style={{ backgroundColor: "#155e75" }}
+                >
+                  <Info className="w-4 h-4 mr-2" />
+                  Admin Features
+                </Button>
+                <Button
+                  onClick={handleAddSection}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center h-10 bg-cyan-700 text-white border-0 focus:ring-0 focus:outline-none shadow-none hover:bg-cyan-900 hover:text-white"
+                  style={{ backgroundColor: "#155e75" }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Section
+                </Button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Mobile Admin Toggle */}
+        {/* Mobile Admin Toggle and Logout */}
         <div className="sm:hidden mb-6 space-y-3">
-          <Button
-            variant={adminMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setAdminMode(!adminMode)}
-            className="w-full"
-          >
-            <Edit3 className="w-4 h-4 mr-2" />
-            {adminMode ? 'Exit Admin Mode' : 'Enter Admin Mode'}
-          </Button>
-          
-          {adminMode && (
-            <Button onClick={handleAddSection} className="w-full" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Section
+          {isLoggedIn && (
+            <Button
+              variant={adminMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                const newAdminMode = !adminMode;
+                setAdminMode(newAdminMode);
+                if (typeof window !== "undefined") {
+                  if (newAdminMode)
+                    localStorage.setItem("docHubAdminMode", "true");
+                  else localStorage.removeItem("docHubAdminMode");
+                }
+              }}
+              className={`w-full flex items-center justify-center transition-colors duration-200 ${
+                adminMode ? "bg-indigo-600 hover:bg-indigo-700 text-white" : ""
+              }`}
+            >
+              {adminMode ? (
+                <ShieldCheck className="w-4 h-4 mr-2" />
+              ) : (
+                <UserCog className="w-4 h-4 mr-2" />
+              )}
+              {adminMode ? "Admin Mode Active" : "Switch to Admin Mode"}
             </Button>
+          )}
+
+          {isLoggedIn && adminMode && (
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAdminFeaturesModalOpen(true)}
+                className="w-full flex items-center h-10 justify-center bg-cyan-800 text-white border-0 focus:ring-0 focus:outline-none shadow-none hover:bg-cyan-900 hover:text-white"
+                style={{ backgroundColor: "#155e75" }}
+              >
+                <Info className="w-4 h-4 mr-2" />
+                Admin Features
+              </Button>
+              <Button
+                onClick={handleAddSection}
+                variant="outline"
+                size="sm"
+                className="w-full flex items-center h-10 justify-center bg-cyan-800 text-white border-0 focus:ring-0 focus:outline-none shadow-none hover:bg-cyan-900 hover:text-white"
+                style={{ backgroundColor: "#155e75" }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Section
+              </Button>
+            </div>
           )}
         </div>
 
         {/* Sections Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredData.map((section) => (
-            <Card 
-              key={section.id} 
+            <Card
+              key={section.id}
               className={`transition-all duration-200 ${section.color} border-2`}
             >
               <CardHeader className="pb-3">
@@ -480,7 +650,7 @@ export default function DocumentationHub() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     {adminMode && (
                       <Button
@@ -492,25 +662,26 @@ export default function DocumentationHub() {
                         <Settings className="w-4 h-4" />
                       </Button>
                     )}
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleSection(section.id)}
                       className="md:hidden"
                     >
-                      {isExpanded(section.id) ? 
-                        <ChevronUp className="w-4 h-4" /> : 
+                      {isExpanded(section.id) ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
                         <ChevronDown className="w-4 h-4" />
-                      }
+                      )}
                     </Button>
                   </div>
                 </div>
-                
+
                 <CardDescription className="text-sm">
                   {section.description}
                 </CardDescription>
-                
+
                 {adminMode && (
                   <Button
                     variant="ghost"
@@ -524,9 +695,11 @@ export default function DocumentationHub() {
                 )}
               </CardHeader>
 
-              <CardContent 
+              <CardContent
                 className={`space-y-3 ${
-                  windowWidth < 768 && !isExpanded(section.id) ? 'hidden' : 'block'
+                  windowWidth < 768 && !isExpanded(section.id)
+                    ? "hidden"
+                    : "block"
                 }`}
               >
                 {section.links.map((link) => (
@@ -535,7 +708,7 @@ export default function DocumentationHub() {
                     className="group p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div 
+                      <div
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => openLink(link.url)}
                       >
@@ -545,19 +718,19 @@ export default function DocumentationHub() {
                           </h4>
                           <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-blue-500 flex-shrink-0" />
                         </div>
-                        
+
                         {link.description && (
                           <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                             {link.description}
                           </p>
                         )}
-                        
+
                         {link.tags && link.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {link.tags.map((tag) => (
-                              <Badge 
-                                key={tag} 
-                                variant="outline" 
+                              <Badge
+                                key={tag}
+                                variant="outline"
                                 className="text-xs px-2 py-0.5 h-auto"
                               >
                                 {tag}
@@ -566,11 +739,11 @@ export default function DocumentationHub() {
                           </div>
                         )}
                       </div>
-                      
+
                       {adminMode && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="opacity-0 group-hover:opacity-100 flex-shrink-0"
                           onClick={() => handleEditResource(link, section.id)}
                         >
@@ -582,7 +755,7 @@ export default function DocumentationHub() {
                 ))}
 
                 {adminMode && (
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full border-2 border-dashed border-gray-300 hover:border-gray-400 bg-transparent"
                     onClick={() => handleAddResource(section.id)}
@@ -601,7 +774,9 @@ export default function DocumentationHub() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-6 h-6 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No results found
+            </h3>
             <p className="text-gray-600">
               Try adjusting your search terms or browse all categories above.
             </p>
@@ -612,11 +787,16 @@ export default function DocumentationHub() {
         <footer className="mt-16 py-8 border-t border-gray-200">
           <div className="text-center">
             <p className="text-sm text-gray-500">
-              Built for startup teams • Last updated: {new Date().toLocaleDateString()}
+              Built for startup teams • Last updated:{" "}
+              {new Date().toLocaleDateString()}
             </p>
             <div className="flex items-center justify-center gap-4 mt-4">
               <Badge variant="outline" className="text-xs">
-                {sections.reduce((acc, section) => acc + section.links.length, 0)} Total Resources
+                {sections.reduce(
+                  (acc, section) => acc + section.links.length,
+                  0
+                )}{" "}
+                Total Resources
               </Badge>
               <Badge variant="outline" className="text-xs">
                 {sections.length} Categories
@@ -629,7 +809,7 @@ export default function DocumentationHub() {
       {/* Modals */}
       <ResourceModal
         isOpen={resourceModal.isOpen}
-        onClose={() => setResourceModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setResourceModal((prev) => ({ ...prev, isOpen: false }))}
         mode={resourceModal.mode}
         resource={resourceModal.resource}
         sectionTitle={getSectionTitle(resourceModal.sectionId)}
@@ -639,11 +819,16 @@ export default function DocumentationHub() {
 
       <SectionModal
         isOpen={sectionModal.isOpen}
-        onClose={() => setSectionModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setSectionModal((prev) => ({ ...prev, isOpen: false }))}
         mode={sectionModal.mode}
         section={sectionModal.section}
         onSave={handleSaveSection}
         onDelete={handleDeleteSection}
+      />
+
+      <AdminFeaturesModal // Added
+        isOpen={isAdminFeaturesModalOpen}
+        onClose={() => setIsAdminFeaturesModalOpen(false)}
       />
     </div>
   );
