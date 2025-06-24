@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { iconMap, availableIcons, getIconByName } from '@/lib/icons';
 
 interface DocumentLink {
   id: string;
@@ -28,6 +30,7 @@ interface Section {
   id: string;
   title: string;
   icon: React.ReactNode;
+  iconName: string; // Added iconName property
   description: string;
   color: string;
   links: DocumentLink[];
@@ -64,7 +67,8 @@ export function SectionModal({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    color: colorOptions[0].value
+    color: colorOptions[0].value,
+    iconName: 'FolderOpen' // Default icon
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,13 +77,15 @@ export function SectionModal({
       setFormData({
         title: section.title || '',
         description: section.description || '',
-        color: section.color || colorOptions[0].value
+        color: section.color || colorOptions[0].value,
+        iconName: section.iconName || 'FolderOpen'
       });
     } else {
       setFormData({
         title: '',
         description: '',
-        color: colorOptions[0].value
+        color: colorOptions[0].value,
+        iconName: 'FolderOpen'
       });
     }
   }, [section, mode, isOpen]);
@@ -97,23 +103,25 @@ export function SectionModal({
 
   const handleSave = async () => {
     if (!validateForm()) return;
-
+    
     setIsLoading(true);
     
-    const sectionData: Section = {
-      id: section?.id || `section_${Date.now()}`,
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      color: formData.color,
-      icon: section?.icon,
-      links: section?.links || []
-    };
-
     try {
-      await onSave(sectionData);
+      const sectionData: Section = {
+        id: section?.id || `section-${Date.now()}`,
+        title: formData.title,
+        description: formData.description,
+        color: formData.color,
+        iconName: formData.iconName,
+        icon: getIconByName(formData.iconName),
+        links: section?.links || []
+      };
+      
+      onSave(sectionData);
       onClose();
     } catch (error) {
       console.error('Error saving section:', error);
+      // Error handling
     } finally {
       setIsLoading(false);
     }
@@ -134,124 +142,128 @@ export function SectionModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {mode === 'add' ? (
-              <>
-                <Plus className="w-5 h-5" />
-                Add New Section
-              </>
-            ) : (
-              <>
-                <Edit3 className="w-5 h-5" />
-                Edit Section
-              </>
-            )}
+          <DialogTitle>
+            {mode === 'add' ? 'Add New Section' : 'Edit Section'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'add' 
-              ? 'Create a new documentation section'
-              : 'Edit section details'
-            }
+              ? 'Create a new section to organize your links and resources.' 
+              : 'Update the details of this section.'}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          {/* Title Field */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Section Title *</Label>
-            <Input
-              id="title"
-              placeholder="e.g., Communication Protocols"
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Section Title</Label>
+            <Input 
+              id="title" 
+              placeholder="e.g. Research Documents" 
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full"
             />
           </div>
 
-          {/* Description Field */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              placeholder="Brief description of this section..."
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description" 
+              placeholder="Briefly describe this section..." 
+              rows={3}
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full min-h-[80px]"
             />
           </div>
 
-          {/* Color Selection */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              Color Theme
-            </Label>
-            <div className="grid grid-cols-4 gap-2">
-              {colorOptions.map((color) => (
-                <button
-                  key={color.name}
-                  type="button"
-                  onClick={() => handleInputChange('color', color.value)}
-                  className={`
-                    p-3 rounded-lg border-2 transition-all duration-200 text-xs font-medium
-                    ${color.value}
-                    ${formData.color === color.value 
-                      ? 'ring-2 ring-blue-500 ring-offset-2' 
-                      : ''
-                    }
-                  `}
-                >
-                  {color.name}
-                </button>
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="icon">Icon</Label>
+              <Select 
+                value={formData.iconName} 
+                onValueChange={(value) => handleInputChange('iconName', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an icon" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {availableIcons.map((iconName) => (
+                    <SelectItem key={iconName} value={iconName}>
+                      <div className="flex items-center gap-2">
+                        <span className="flex-shrink-0">{getIconByName(iconName)}</span>
+                        <span>{iconName}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="color">Color</Label>
+              <Select 
+                value={formData.color} 
+                onValueChange={(value) => handleInputChange('color', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a color" />
+                </SelectTrigger>
+                <SelectContent>
+                  {colorOptions.map((color) => (
+                    <SelectItem key={color.value} value={color.value}>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-4 h-4 rounded ${color.value.split(' ')[0]}`}></div>
+                        <span>{color.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Preview */}
-          <div className="space-y-2">
+          <div className="mt-2">
             <Label>Preview</Label>
-            <div className={`p-4 rounded-lg border-2 ${formData.color}`}>
-              <h3 className="font-semibold text-lg mb-1">
-                {formData.title || 'Section Title'}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {formData.description || 'Section description will appear here...'}
-              </p>
-              <Badge variant="secondary" className="text-xs mt-2">
-                0 resources
-              </Badge>
+            <div className={`mt-2 p-4 rounded-lg border-2 ${formData.color}`}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  {getIconByName(formData.iconName)}
+                </div>
+                <div>
+                  <h4 className="font-medium">{formData.title || 'Section Title'}</h4>
+                  <p className="text-sm text-gray-600 line-clamp-1">
+                    {formData.description || 'Section description will appear here...'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <div>
-            {mode === 'edit' && onDelete && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isLoading}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Section
-              </Button>
-            )}
-          </div>
-          
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          {mode === 'edit' && onDelete && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="mr-auto"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={!validateForm() || isLoading}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Section'}
+            <Button onClick={handleSave} disabled={isLoading || !validateForm()}>
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-white mr-2"></div>
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Save
             </Button>
           </div>
         </DialogFooter>

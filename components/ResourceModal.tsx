@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface DocumentLink {
   id: string;
@@ -22,6 +23,10 @@ interface DocumentLink {
   url: string;
   description?: string;
   tags?: string[];
+  sectionId?: string; // Added sectionId for Firebase
+  createdAt?: any;
+  updatedAt?: any;
+  createdBy?: string;
 }
 
 interface ResourceModalProps {
@@ -51,6 +56,7 @@ export function ResourceModal({
   });
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (resource && mode === 'edit') {
@@ -103,180 +109,200 @@ export function ResourceModal({
   };
 
   const validateForm = () => {
-    return formData.title.trim() && formData.url.trim();
+    if (!formData.title.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please provide a title for this resource.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    if (!formData.url.trim()) {
+      toast({
+        title: "URL required",
+        description: "Please provide a URL for this resource.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      new URL(formData.url);
+    } catch {
+      toast({
+        title: "Invalid URL",
+        description: "Please provide a valid URL (e.g., https://example.com).",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    return true;
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
-
+    
     setIsLoading(true);
     
-    const resourceData: DocumentLink = {
-      id: resource?.id || `resource_${Date.now()}`,
-      title: formData.title.trim(),
-      url: formData.url.trim(),
-      description: formData.description.trim() || undefined,
-      tags: formData.tags.length > 0 ? formData.tags : undefined
-    };
-
     try {
-      await onSave(resourceData);
+      const resourceData: DocumentLink = {
+        id: resource?.id || `resource-${Date.now()}`,
+        title: formData.title,
+        url: formData.url,
+        description: formData.description || '',
+        tags: formData.tags,
+        // Keep existing section ID if editing
+        sectionId: resource?.sectionId
+      };
+      
+      onSave(resourceData);
       onClose();
     } catch (error) {
       console.error('Error saving resource:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving the resource. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!resource?.id || !onDelete) return;
+    if (!resource || !onDelete) return;
     
     setIsLoading(true);
+    
     try {
-      await onDelete(resource.id);
+      onDelete(resource.id);
       onClose();
     } catch (error) {
       console.error('Error deleting resource:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem deleting the resource. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {mode === 'add' ? (
-              <>
-                <Plus className="w-5 h-5" />
-                Add New Resource
-              </>
-            ) : (
-              <>
-                <Edit3 className="w-5 h-5" />
-                Edit Resource
-              </>
-            )}
+          <DialogTitle>
+            {mode === 'add' ? 'Add New Resource' : 'Edit Resource'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'add' 
-              ? `Add a new resource to ${sectionTitle}`
-              : `Edit resource in ${sectionTitle}`
-            }
+              ? `Add a new resource to the "${sectionTitle}" section.` 
+              : `Update this resource in the "${sectionTitle}" section.`}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          {/* Title Field */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              placeholder="e.g., Daily Standup Template"
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Resource Title</Label>
+            <Input 
+              id="title" 
+              placeholder="e.g. Team Meeting Notes" 
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full"
+              disabled={isLoading}
             />
           </div>
 
-          {/* URL Field */}
-          <div className="space-y-2">
-            <Label htmlFor="url">URL *</Label>
-            <Input
-              id="url"
-              type="url"
-              placeholder="https://docs.google.com/spreadsheets/d/..."
+          <div className="grid gap-2">
+            <Label htmlFor="url">URL</Label>
+            <Input 
+              id="url" 
+              placeholder="https://docs.google.com/..." 
               value={formData.url}
               onChange={(e) => handleInputChange('url', e.target.value)}
-              className="w-full"
+              disabled={isLoading}
             />
           </div>
 
-          {/* Description Field */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Brief description of this resource..."
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Textarea 
+              id="description" 
+              placeholder="Briefly describe this resource..." 
+              rows={2}
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full min-h-[80px]"
+              disabled={isLoading}
             />
           </div>
 
-          {/* Tags Field */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+          <div className="grid gap-2">
+            <Label htmlFor="tags">Tags (Optional)</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.tags.map(tag => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1 p-1.5">
+                  {tag}
+                  <button 
+                    type="button" 
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 text-gray-500 hover:text-gray-700"
+                    disabled={isLoading}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
             <div className="flex gap-2">
-              <Input
-                id="tags"
-                placeholder="Add a tag..."
+              <Input 
+                id="tags" 
+                placeholder="Add a tag and press Enter" 
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
+                disabled={isLoading}
                 className="flex-1"
               />
               <Button 
                 type="button" 
                 variant="outline" 
-                size="sm"
-                onClick={addTag}
-                disabled={!tagInput.trim()}
+                onClick={addTag} 
+                disabled={!tagInput.trim() || isLoading}
               >
-                Add
+                <Plus className="w-4 h-4" />
               </Button>
             </div>
-            
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags.map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <div>
-            {mode === 'edit' && onDelete && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isLoading}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
-            )}
-          </div>
-          
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          {mode === 'edit' && onDelete && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="mr-auto"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={!validateForm() || isLoading}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save'}
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-white mr-2"></div>
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Save
             </Button>
           </div>
         </DialogFooter>
