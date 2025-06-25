@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Info, Plus, Search } from "lucide-react";
@@ -17,7 +17,17 @@ interface MainContentProps {
   setIsAdminFeaturesModalOpen: (isOpen: boolean) => void;
 }
 
-export function MainContent({ sections, adminMode, searchTerm, windowWidth, onAddSection, onEditSection, onAddResource, onEditResource, setIsAdminFeaturesModalOpen }: MainContentProps) {
+export function MainContent({
+  sections,
+  adminMode,
+  searchTerm,
+  windowWidth,
+  onAddSection,
+  onEditSection,
+  onAddResource,
+  onEditResource,
+  setIsAdminFeaturesModalOpen,
+}: MainContentProps) {
   const filteredData = sections
     .map((section) => ({
       ...section,
@@ -33,7 +43,7 @@ export function MainContent({ sections, adminMode, searchTerm, windowWidth, onAd
     .filter((section) => section.links.length > 0 || searchTerm === "");
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
+    <main className="flex-1 p-4 sm:p-6 lg:p-8 lg:max-w-7xl lg:mx-auto">
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">

@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: "Your centralized team document management solution",
   manifest: "/manifest.json",
   themeColor: "#000000",
+  icons: {
+    icon: "/icons/logo.ico",
+    shortcut: "/icons/logo.ico",
+    apple: "/icons/logo.png",
+  },
 };
 
 export default function RootLayout({
