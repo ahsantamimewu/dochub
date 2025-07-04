@@ -66,7 +66,12 @@ export function useFirestore() {
         const linksMap: { [key: string]: DocumentLink[] } = {};
         linksSnapshot.forEach((doc) => {
           const linkData = doc.data() as DocumentLink;
-          const link = { ...linkData, id: doc.id };
+          const link = { 
+            ...linkData, 
+            id: doc.id,
+            // Backward compatibility: set type to 'file' if not present
+            type: linkData.type || 'file'
+          };
           if (link.sectionId) {
             if (!linksMap[link.sectionId]) {
               linksMap[link.sectionId] = [];

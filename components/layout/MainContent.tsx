@@ -14,6 +14,8 @@ interface MainContentProps {
   onEditSection: (section: Section) => void;
   onAddResource: (sectionId: string) => void;
   onEditResource: (resource: DocumentLink, sectionId: string) => void;
+  onViewTable: (resource: DocumentLink) => void;
+  onViewNotes: (resource: DocumentLink) => void;
   setIsAdminFeaturesModalOpen: (isOpen: boolean) => void;
 }
 
@@ -26,6 +28,8 @@ export function MainContent({
   onEditSection,
   onAddResource,
   onEditResource,
+  onViewTable,
+  onViewNotes,
   setIsAdminFeaturesModalOpen,
 }: MainContentProps) {
   const filteredData = sections
@@ -91,6 +95,8 @@ export function MainContent({
             onEditSection={onEditSection}
             onAddResource={onAddResource}
             onEditResource={onEditResource}
+            onViewTable={onViewTable}
+            onViewNotes={onViewNotes}
             windowWidth={windowWidth}
           />
         ))}

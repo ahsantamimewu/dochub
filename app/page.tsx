@@ -20,6 +20,8 @@ import { MainContent } from "@/components/layout/MainContent";
 import { ResourceModal } from "@/components/ResourceModal";
 import { SectionModal } from "@/components/SectionModal";
 import { AdminFeaturesModal } from "@/components/AdminFeaturesModal";
+import { TableViewer } from "@/components/TableViewer";
+import { NotesViewer } from "@/components/NotesViewer";
 import { Badge } from "@/components/ui/badge";
 
 export default function DocumentationHub() {
@@ -30,7 +32,8 @@ export default function DocumentationHub() {
   const [searchTerm, setSearchTerm] = useState("");
   const [adminMode, setAdminMode] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
-  const [isAdminFeaturesModalOpen, setIsAdminFeaturesModalOpen] = useState(false);
+  const [isAdminFeaturesModalOpen, setIsAdminFeaturesModalOpen] =
+    useState(false);
 
   // Modal states
   const [resourceModal, setResourceModal] = useState({
@@ -44,6 +47,17 @@ export default function DocumentationHub() {
     isOpen: false,
     mode: "add" as "add" | "edit",
     section: undefined as Section | undefined,
+  });
+
+  // Viewer modal states
+  const [tableViewer, setTableViewer] = useState({
+    isOpen: false,
+    resource: undefined as DocumentLink | undefined,
+  });
+
+  const [notesViewer, setNotesViewer] = useState({
+    isOpen: false,
+    resource: undefined as DocumentLink | undefined,
   });
 
   // Check admin status from local storage
@@ -84,7 +98,12 @@ export default function DocumentationHub() {
 
   // Resource CRUD handlers
   const handleAddResource = (sectionId: string) => {
-    setResourceModal({ isOpen: true, mode: "add", resource: undefined, sectionId });
+    setResourceModal({
+      isOpen: true,
+      mode: "add",
+      resource: undefined,
+      sectionId,
+    });
   };
 
   const handleEditResource = (resource: DocumentLink, sectionId: string) => {
@@ -95,24 +114,41 @@ export default function DocumentationHub() {
     try {
       if (resourceModal.mode === "add") {
         await addResource(resource, resourceModal.sectionId, user?.uid || "");
-        toast({ title: "Resource added", description: "The resource has been added successfully." });
+        toast({
+          title: "Resource added",
+          description: "The resource has been added successfully.",
+        });
       } else {
         await updateResource(resource);
-        toast({ title: "Resource updated", description: "The resource has been updated successfully." });
+        toast({
+          title: "Resource updated",
+          description: "The resource has been updated successfully.",
+        });
       }
     } catch (error) {
       console.error("Error saving resource:", error);
-      toast({ title: "Error", description: "There was a problem saving the resource.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "There was a problem saving the resource.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleDeleteResource = async (resourceId: string) => {
     try {
       await deleteResource(resourceId);
-      toast({ title: "Resource deleted", description: "The resource has been deleted successfully." });
+      toast({
+        title: "Resource deleted",
+        description: "The resource has been deleted successfully.",
+      });
     } catch (error) {
       console.error("Error deleting resource:", error);
-      toast({ title: "Error", description: "There was a problem deleting the resource.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "There was a problem deleting the resource.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -128,26 +164,64 @@ export default function DocumentationHub() {
   const handleSaveSection = async (section: Section) => {
     try {
       if (sectionModal.mode === "add") {
-        await addSection(section, user?.uid || "");
-        toast({ title: "Section added", description: "The section has been added successfully." });
+        // For adding, we only pass the fields that Firestore can store
+        const sectionToAdd = {
+          title: section.title,
+          description: section.description,
+          color: section.color,
+          iconName: section.iconName,
+        };
+        console.log("Adding section to Firestore:", sectionToAdd);
+        await addSection(sectionToAdd, user?.uid || "");
+        toast({
+          title: "Section added",
+          description: "The section has been added successfully.",
+        });
       } else {
+        console.log("Updating section:", section);
         await updateSection(section);
-        toast({ title: "Section updated", description: "The section has been updated successfully." });
+        toast({
+          title: "Section updated",
+          description: "The section has been updated successfully.",
+        });
       }
     } catch (error) {
       console.error("Error saving section:", error);
-      toast({ title: "Error", description: "There was a problem saving the section.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: `There was a problem saving the section: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        variant: "destructive",
+      });
     }
   };
 
   const handleDeleteSection = async (sectionId: string) => {
     try {
       await deleteSection(sectionId);
-      toast({ title: "Section deleted", description: "The section and all its resources have been deleted successfully." });
+      toast({
+        title: "Section deleted",
+        description:
+          "The section and all its resources have been deleted successfully.",
+      });
     } catch (error) {
       console.error("Error deleting section:", error);
-      toast({ title: "Error", description: "There was a problem deleting the section.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "There was a problem deleting the section.",
+        variant: "destructive",
+      });
     }
+  };
+
+  // Viewer handlers
+  const handleViewTable = (resource: DocumentLink) => {
+    setTableViewer({ isOpen: true, resource });
+  };
+
+  const handleViewNotes = (resource: DocumentLink) => {
+    setNotesViewer({ isOpen: true, resource });
   };
 
   const getSectionTitle = (sectionId: string) => {
@@ -181,8 +255,12 @@ export default function DocumentationHub() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-blue-600 mb-6"></div>
-          <h3 className="text-xl font-semibold text-gray-700">Loading your hub...</h3>
-          <p className="text-gray-500 mt-2">Fetching your sections and resources</p>
+          <h3 className="text-xl font-semibold text-gray-700">
+            Loading your hub...
+          </h3>
+          <p className="text-gray-500 mt-2">
+            Fetching your sections and resources
+          </p>
         </div>
       ) : (
         <MainContent
@@ -194,6 +272,8 @@ export default function DocumentationHub() {
           onEditSection={handleEditSection}
           onAddResource={handleAddResource}
           onEditResource={handleEditResource}
+          onViewTable={handleViewTable}
+          onViewNotes={handleViewNotes}
           setIsAdminFeaturesModalOpen={setIsAdminFeaturesModalOpen}
         />
       )}
@@ -201,11 +281,13 @@ export default function DocumentationHub() {
       <footer className="mt-16 py-8 border-t border-gray-200">
         <div className="text-center">
           <p className="text-sm text-gray-500">
-            Built for startup teams • Last updated: {new Date().toLocaleDateString()}
+            Built for startup teams • Last updated:{" "}
+            {new Date().toLocaleDateString()}
           </p>
           <div className="flex items-center justify-center gap-4 mt-4">
             <Badge variant="outline" className="text-xs">
-              {sections.reduce((acc, section) => acc + section.links.length, 0)} Total Resources
+              {sections.reduce((acc, section) => acc + section.links.length, 0)}{" "}
+              Total Resources
             </Badge>
             <Badge variant="outline" className="text-xs">
               {sections.length} Categories
@@ -236,6 +318,40 @@ export default function DocumentationHub() {
       <AdminFeaturesModal
         isOpen={isAdminFeaturesModalOpen}
         onClose={() => setIsAdminFeaturesModalOpen(false)}
+      />
+
+      <TableViewer
+        isOpen={tableViewer.isOpen && !!tableViewer.resource}
+        onClose={() => setTableViewer({ isOpen: false, resource: undefined })}
+        resource={tableViewer.resource}
+        onEdit={() => {
+          if (tableViewer.resource) {
+            setTableViewer({ isOpen: false, resource: undefined });
+            handleEditResource(tableViewer.resource, tableViewer.resource.sectionId || '');
+          }
+        }}
+        onSave={async (updatedResource) => {
+          try {
+            await updateResource(updatedResource);
+            toast({ title: "Table updated", description: "Your table data has been saved successfully." });
+          } catch (error) {
+            console.error("Error saving table:", error);
+            toast({ title: "Error", description: "Failed to save table data.", variant: "destructive" });
+            throw error;
+          }
+        }}
+      />
+
+      <NotesViewer
+        isOpen={notesViewer.isOpen && !!notesViewer.resource}
+        onClose={() => setNotesViewer({ isOpen: false, resource: undefined })}
+        resource={notesViewer.resource}
+        onEdit={() => {
+          if (notesViewer.resource) {
+            setNotesViewer({ isOpen: false, resource: undefined });
+            handleEditResource(notesViewer.resource, notesViewer.resource.sectionId || '');
+          }
+        }}
       />
     </div>
   );

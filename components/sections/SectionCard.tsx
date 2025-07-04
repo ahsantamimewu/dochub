@@ -14,10 +14,12 @@ interface SectionCardProps {
   onEditSection: (section: Section) => void;
   onAddResource: (sectionId: string) => void;
   onEditResource: (resource: DocumentLink, sectionId: string) => void;
+  onViewTable: (resource: DocumentLink) => void;
+  onViewNotes: (resource: DocumentLink) => void;
   windowWidth: number;
 }
 
-export function SectionCard({ section, adminMode, onEditSection, onAddResource, onEditResource, windowWidth }: SectionCardProps) {
+export function SectionCard({ section, adminMode, onEditSection, onAddResource, onEditResource, onViewTable, onViewNotes, windowWidth }: SectionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleSection = () => {
@@ -27,6 +29,16 @@ export function SectionCard({ section, adminMode, onEditSection, onAddResource, 
   const openLink = (url: string) => {
     if (typeof window !== "undefined") {
       window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleResourceClick = (resource: DocumentLink) => {
+    if (resource.type === 'table') {
+      onViewTable(resource);
+    } else if (resource.type === 'notes') {
+      onViewNotes(resource);
+    } else if (resource.type === 'file' && resource.url) {
+      openLink(resource.url);
     }
   };
 
@@ -106,6 +118,7 @@ export function SectionCard({ section, adminMode, onEditSection, onAddResource, 
             adminMode={adminMode}
             onEdit={() => onEditResource(link, section.id)}
             onOpenLink={openLink}
+            onResourceClick={() => handleResourceClick(link)}
           />
         ))}
 

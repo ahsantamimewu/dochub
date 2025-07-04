@@ -24,24 +24,7 @@ import {
 } from "@/components/ui/select";
 import { CustomDropdown } from "@/components/ui/custom-dropdown";
 import { iconMap, availableIcons, getIconByName } from "@/lib/icons";
-
-interface DocumentLink {
-  id: string;
-  title: string;
-  url: string;
-  description?: string;
-  tags?: string[];
-}
-
-interface Section {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  iconName: string; // Added iconName property
-  description: string;
-  color: string;
-  links: DocumentLink[];
-}
+import { DocumentLink, Section } from "@/types";
 
 interface SectionModalProps {
   isOpen: boolean;
@@ -121,7 +104,10 @@ export function SectionModal({
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log("Form validation failed");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -136,11 +122,12 @@ export function SectionModal({
         links: section?.links || [],
       };
 
-      onSave(sectionData);
+      console.log("Saving section:", sectionData);
+      await onSave(sectionData);
       onClose();
     } catch (error) {
       console.error("Error saving section:", error);
-      // Error handling
+      // Show error to user - you might want to add a toast notification here
     } finally {
       setIsLoading(false);
     }
@@ -192,7 +179,9 @@ export function SectionModal({
                 placeholder="Briefly describe this section..."
                 rows={3}
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
               />
             </div>
 
